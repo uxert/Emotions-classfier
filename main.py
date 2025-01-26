@@ -133,26 +133,32 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # --- Step 5: Define Model ---
 class EmotionRecognizer(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout_prob = 0.2, conv_dropout_prob = 0.2):
         super(EmotionRecognizer, self).__init__()
         self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.LazyLinear(out_features=128)  # Adjust dimensions if input size changes
+        self.fc1 = nn.LazyLinear(out_features=128)
         self.fc2 = nn.LazyLinear(out_features=8)  # 8 emotion classes
+
+        self.dropout = nn.Dropout(p=dropout_prob)
+        self.conv_dropout = nn.Dropout2d(p=conv_dropout_prob)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
+        x = self.conv_dropout(x)
         x = self.pool(F.relu(self.conv2(x)))
+        x = self.conv_dropout(x)
         x = x.view(x.size(0), -1)  # Flatten
         x = F.relu(self.fc1(x))
+        x = self.dropout(x)
         x = self.fc2(x)
         return x
 
 
 
 # Instantiate model
-model = EmotionRecognizer()
+model = EmotionRecognizer(dropout_prob=0.2, conv_dropout_prob=0.2)
 
 
 # --- Step 6: Train and Test Model ---
