@@ -156,7 +156,7 @@ def test_model(model, test_loader):
             # noinspection PyUnresolvedReferences
             correct += (predicted == labels).sum().item()
 
-    print(f"Test Accuracy: {correct / total * 100:.2f}%")
+    print(f"Test Accuracy: {correct / total * 100:.2f}%, for total of {total} predictions")
     return model
 
 def main():
@@ -184,7 +184,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # Instantiate model
-    model = EmotionRecognizer(dropout_prob=0.2, conv_dropout_prob=0.2)
+    model = EmotionRecognizer()
 
     # Train the model
     train_model(model, train_loader, val_loader)
