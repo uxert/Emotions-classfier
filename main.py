@@ -8,6 +8,8 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from misc import display_audio_and_predictions
+from EmotionRecognizer import EmotionRecognizer
+
 
 # --- Step 1: Unzip the Dataset ---
 def unzip_nested_dataset(main_zip_path, extract_to):
@@ -129,33 +131,6 @@ test_dataset = RAVDESSDataset(test_files, test_labels)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-
-# --- Step 5: Define Model ---
-class EmotionRecognizer(nn.Module):
-    def __init__(self, dropout_prob = 0.2, conv_dropout_prob = 0.2):
-        super(EmotionRecognizer, self).__init__()
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.LazyLinear(out_features=128)
-        self.fc2 = nn.LazyLinear(out_features=8)  # 8 emotion classes
-
-        self.dropout = nn.Dropout(p=dropout_prob)
-        self.conv_dropout = nn.Dropout2d(p=conv_dropout_prob)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.conv_dropout(x)
-        x = self.pool(F.relu(self.conv2(x)))
-        x = self.conv_dropout(x)
-        x = x.view(x.size(0), -1)  # Flatten
-        x = F.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-
 
 # Instantiate model
 model = EmotionRecognizer(dropout_prob=0.2, conv_dropout_prob=0.2)
