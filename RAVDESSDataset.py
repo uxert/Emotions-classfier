@@ -4,11 +4,13 @@ import torch
 import torch.nn.functional as F
 
 class RAVDESSDataset(Dataset):
-    def __init__(self, file_paths, labels, sample_rate=16000, max_duration=3):
+    def __init__(self, file_paths, labels, sample_rate=16000, max_duration=3, train_mode=False, noise_strength=0.015):
         self.file_paths = file_paths
         self.labels = labels
         self.sample_rate = sample_rate
         self.max_length = sample_rate * max_duration  # Maximum length in samples
+        self.noise_strength = noise_strength
+        self.train_mode = train_mode
 
     def __len__(self):
         return len(self.file_paths)
@@ -44,6 +46,16 @@ class RAVDESSDataset(Dataset):
         # Normalize and take log scale
         mel_spec = torch.log(mel_spec + 1e-9)
         mel_spec = (mel_spec - mel_spec.mean()) / mel_spec.std()
+
+        if self.train_mode is True:
+            time_mask = torchaudio.transforms.TimeMasking(time_mask_param=10)
+            mel_spec = time_mask(mel_spec)
+
+            freq_mask = torchaudio.transforms.FrequencyMasking(freq_mask_param=6)
+            mel_spec = freq_mask(mel_spec)
+            # Add random (in this case, Gaussian) noise to the spectrogram, with very small scale
+            noise = torch.randn_like(mel_spec) * self.noise_strength
+            mel_spec += noise
 
         # Return features and label
         label = torch.tensor(self.labels[idx], dtype=torch.long)
