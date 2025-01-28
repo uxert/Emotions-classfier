@@ -27,10 +27,6 @@ def unzip_nested_dataset(main_zip_path, extract_to):
         print(f"Extracted {nested_zip} to {nested_extract_to}")
 
 
-# Extract the dataset
-unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
-
-
 # --- Step 2: Load Data ---
 def load_ravdess_data(data_dir, audio_type="speech"):
     """
@@ -61,19 +57,6 @@ def load_ravdess_data(data_dir, audio_type="speech"):
     labels = label_encoder.fit_transform(labels)
 
     return file_paths, labels
-
-
-# Load speech data (you can switch to "song" if needed)
-file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
-
-# --- Step 3: Split Data ---
-train_files, test_files, train_labels, test_labels = train_test_split(
-    file_paths, labels, test_size=0.2, stratify=labels, random_state=42
-)
-train_files, val_files, train_labels, val_labels = train_test_split(
-    train_files, train_labels, test_size=0.25, stratify=train_labels, random_state=42
-)
-
 
 # --- Step 4: Define Dataset ---
 class RAVDESSDataset(Dataset):
@@ -122,23 +105,8 @@ class RAVDESSDataset(Dataset):
         label = torch.tensor(self.labels[idx], dtype=torch.long)
         return mel_spec, label
 
-
-# Create datasets and dataloaders
-train_dataset = RAVDESSDataset(train_files, train_labels)
-val_dataset = RAVDESSDataset(val_files, val_labels)
-test_dataset = RAVDESSDataset(test_files, test_labels)
-
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-# Instantiate model
-model = EmotionRecognizer(dropout_prob=0.2, conv_dropout_prob=0.2)
-
-
 # --- Step 6: Train and Test Model ---
 def train_model(model, train_loader, val_loader, epochs=5, lr=0.001):
-    print(os.path.exists(file_paths[0]))  # Replace with a specific path to test
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -185,21 +153,52 @@ def test_model(model, test_loader):
             outputs = model(mel_spec)
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
+            # noinspection PyUnresolvedReferences
             correct += (predicted == labels).sum().item()
 
     print(f"Test Accuracy: {correct / total * 100:.2f}%")
     return model
 
+def main():
+    # Extract the dataset
+    unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
 
-# Train the model
-train_model(model, train_loader, val_loader)
+    # Load speech data (you can switch to "song" if needed)
+    file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
 
-# Test the model
-my_model = test_model(model, test_loader)
+    # --- Step 3: Split Data ---
+    train_files, test_files, train_labels, test_labels = train_test_split(
+        file_paths, labels, test_size=0.2, stratify=labels, random_state=42
+    )
+    train_files, val_files, train_labels, val_labels = train_test_split(
+        train_files, train_labels, test_size=0.25, stratify=train_labels, random_state=42
+    )
 
-class_names = [
-    "Neutral", "Calm", "Happy", "Sad", "Angry", "Fearful", "Disgust", "Surprised"
-]
+    # Create datasets and dataloaders
+    train_dataset = RAVDESSDataset(train_files, train_labels)
+    val_dataset = RAVDESSDataset(val_files, val_labels)
+    test_dataset = RAVDESSDataset(test_files, test_labels)
 
-print(f"{torch.cuda.is_available()}")
-display_audio_and_predictions(my_model, test_dataset, class_names, num_samples=5)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+    # Instantiate model
+    model = EmotionRecognizer(dropout_prob=0.2, conv_dropout_prob=0.2)
+
+    # Train the model
+    train_model(model, train_loader, val_loader)
+
+    # Test the model
+    my_model = test_model(model, test_loader)
+
+    class_names = [
+        "Neutral", "Calm", "Happy", "Sad", "Angry", "Fearful", "Disgust", "Surprised"
+    ]
+
+    print(f"{torch.cuda.is_available()}")
+    display_audio_and_predictions(my_model, test_dataset, class_names, num_samples=5)
+
+
+if __name__ == "__main__":
+    main()
