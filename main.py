@@ -10,7 +10,6 @@ from sklearn.preprocessing import LabelEncoder
 from misc import display_audio_and_predictions
 from EmotionRecognizer import EmotionRecognizer
 
-
 # --- Step 1: Unzip the Dataset ---
 def unzip_nested_dataset(main_zip_path, extract_to):
     # Extract main archive
@@ -153,6 +152,7 @@ def test_model(model, test_loader):
             outputs = model(mel_spec)
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
+
             # noinspection PyUnresolvedReferences
             correct += (predicted == labels).sum().item()
 
@@ -199,6 +199,6 @@ def main():
     print(f"{torch.cuda.is_available()}")
     display_audio_and_predictions(my_model, test_dataset, class_names, num_samples=5)
 
-
 if __name__ == "__main__":
     main()
+    
