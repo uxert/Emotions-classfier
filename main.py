@@ -105,7 +105,18 @@ def inference():
     ]
     unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
     file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
-    dataset = RAVDESSDataset(file_paths, labels)
+
+
+    # Split the dataset in the exact same way as with training
+    train_files, _, train_labels, _ = train_test_split(
+        file_paths, labels, test_size=0.2, stratify=labels, random_state=42
+    )
+    _, val_files, _, val_labels = train_test_split(
+        train_files, train_labels, test_size=0.25, stratify=train_labels, random_state=42
+    )
+
+
+    dataset = RAVDESSDataset(val_files, val_labels)
 
     my_model = load_model_for_inference(MODEL_URL, MODEL_PATH)
     # out = my_model.make_one_prediction(dataset, class_names)
