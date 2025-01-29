@@ -13,7 +13,6 @@ def download_dataset_from_gdrive(google_drive_url: str, dataset_path: str):
     print("Downloading...")
     gdown.download(google_drive_url, dataset_path, quiet=False)
 
-# --- Step 1: Unzip the Dataset ---
 def unzip_nested_dataset(main_zip_path, extract_to):
     # Extract main archive
     with zipfile.ZipFile(main_zip_path, 'r') as zip_ref:
@@ -29,7 +28,6 @@ def unzip_nested_dataset(main_zip_path, extract_to):
         print(f"Extracted {nested_zip} to {nested_extract_to}")
 
 
-# --- Step 2: Load Data ---
 def load_ravdess_data(data_dir, audio_type="speech"):
     """
     Load RAVDESS data from the extracted directories.
