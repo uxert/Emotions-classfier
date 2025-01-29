@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from dataset_utils import unzip_nested_dataset, load_ravdess_data
 from EmotionRecognizer import EmotionRecognizer
 from RAVDESSDataset import RAVDESSDataset
+from misc import load_model_for_inference
 
 MODEL_PATH = "EmotionsClassifier.pth"
 MODEL_URL = "https://drive.google.com/uc?id=1rEBqU3geg2V4_W9QGY-nZGWWdNXd4zrq"
@@ -42,6 +43,7 @@ def train_model(model, train_loader, val_loader, epochs=10, lr=0.001):
 
         print(
             f"Epoch {epoch + 1}: Train Loss = {train_loss / len(train_loader):.4f}, Val Loss = {val_loss / len(val_loader):.4f}")
+    torch.save(model.state_dict(), MODEL_PATH)
 
 
 def test_model(model, test_loader):
@@ -64,11 +66,11 @@ def test_model(model, test_loader):
     print(f"Test Accuracy: {correct / total * 100:.2f}%, for total of {total} predictions")
     return model
 
-def main():
+def train_and_save_model():
     # Extract the dataset
     unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
 
-    # Load speech data (you can switch to "song" if needed)
+    # Load speech data (can also switch to "song")
     file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
 
     # --- Step 3: Split Data ---
@@ -97,6 +99,21 @@ def main():
     # Test the model
     my_model = test_model(model, test_loader)
 
+def inference():
+    class_names = [
+        "Neutral", "Calm", "Happy", "Sad", "Angry", "Fearful", "Disgust", "Surprised"
+    ]
+    unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
+    file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
+    dataset = RAVDESSDataset(file_paths, labels)
+
+    my_model = load_model_for_inference(MODEL_URL, MODEL_PATH)
+    # out = my_model.make_one_prediction(dataset, class_names)
+    # print(out)
+    from GUI import MyGUI
+    gui = MyGUI()
+    gui.show_gui(my_model, dataset, class_names)
+
 if __name__ == "__main__":
-    main()
-    
+    # train_and_save_model()
+    inference()
