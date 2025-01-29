@@ -1,7 +1,11 @@
+from torch import zeros, inference_mode, randint
 import torch.nn as nn
 import torch.nn.functional as F
+from RAVDESSDataset import RAVDESSDataset
 
 class EmotionRecognizer(nn.Module):
+
+    dummy_input = zeros((32,1,64,94), device='cpu')
     def __init__(self, dropout_prob = 0.4, conv_dropout_prob = 0.3):
         super(EmotionRecognizer, self).__init__()
         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
@@ -35,3 +39,24 @@ class EmotionRecognizer(nn.Module):
         x = self.fc2(x)
         # no softmax here - it happens in CrossEntropyLoss
         return x
+
+    def make_one_prediction(self, dataset: RAVDESSDataset, class_names) -> tuple[str, str, str]:
+        """
+        :return: true emotion, predicted emotion, audio path (to play the sound with playsound)
+        """
+        with inference_mode():
+            idx = randint(0, len(dataset), (1,)).item()
+            mel_spec, label = dataset[idx]
+
+            mel_spec = mel_spec.unsqueeze(0)
+            output = self(mel_spec)
+            predicted_class = output.argmax(dim=1).item()
+
+            # Display the prediction
+            true_emotion = class_names[label]
+            predicted_emotion = class_names[predicted_class]
+
+            audio_path = dataset.file_paths[idx]
+            return true_emotion, predicted_emotion, audio_path
+
+

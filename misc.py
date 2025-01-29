@@ -1,7 +1,12 @@
 from playsound import playsound
 import torch
+from RAVDESSDataset import RAVDESSDataset
+from EmotionRecognizer import EmotionRecognizer
+import gdown
+import os
 
-def display_audio_and_predictions(model, dataset: torch.utils.data.Dataset, class_names, num_samples=5):
+
+def display_audio_and_predictions(model, dataset: RAVDESSDataset, class_names, num_samples=5):
     """
     Displays audio files and prints model predictions (console version with audio playback).
 
@@ -37,3 +42,22 @@ def display_audio_and_predictions(model, dataset: torch.utils.data.Dataset, clas
         audio_path = dataset.file_paths[idx]
         print(f"Playing audio file: {audio_path}")
         playsound(audio_path)
+
+def download_model_from_gdrive(model_url, model_path):
+    gdown.download(model_url, model_path, quiet=False)
+
+def load_model_for_inference(model_url, model_path, device="cpu") -> EmotionRecognizer:
+    if not os.path.exists(model_path):
+        download_model_from_gdrive(model_url, model_path)
+    else:
+        print("Model already downloaded :)")
+    model = EmotionRecognizer()
+    _ = model(EmotionRecognizer.dummy_input)  # initializes lazy layers before loading
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu'), weights_only=True))
+    model.to(device)
+    model.eval()
+    return model
+
+
+
+
