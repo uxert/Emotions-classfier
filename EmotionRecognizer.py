@@ -40,25 +40,25 @@ class EmotionRecognizer(nn.Module):
         # no softmax here - it happens in CrossEntropyLoss
         return x
 
-    @inference_mode
     def make_one_prediction(self, dataset: RAVDESSDataset, class_names) -> tuple[str, str, str]:
         """
         :return: true emotion, predicted emotion, audio path (to play the sound with playsound)
         """
-        idx = randint(0, len(dataset), (1,)).item()
-        mel_spec, label = dataset[idx]
+        with inference_mode():
+            idx = randint(0, len(dataset), (1,)).item()
+            mel_spec, label = dataset[idx]
 
-        mel_spec = mel_spec.unsqueeze(0)
-        output = self(mel_spec)
-        predicted_class = output.argmax(dim=1).item()
+            mel_spec = mel_spec.unsqueeze(0)
+            output = self(mel_spec)
+            predicted_class = output.argmax(dim=1).item()
 
-        # Display the prediction
-        true_emotion = class_names[label]
-        predicted_emotion = class_names[predicted_class]
-        print(f"True Emotion: {true_emotion}")
-        print(f"Predicted Emotion: {predicted_emotion}")
+            # Display the prediction
+            true_emotion = class_names[label]
+            predicted_emotion = class_names[predicted_class]
+            print(f"True Emotion: {true_emotion}")
+            print(f"Predicted Emotion: {predicted_emotion}")
 
-        audio_path = dataset.file_paths[idx]
-        return true_emotion, predicted_emotion, audio_path
+            audio_path = dataset.file_paths[idx]
+            return true_emotion, predicted_emotion, audio_path
 
 
