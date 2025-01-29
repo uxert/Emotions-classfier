@@ -55,8 +55,6 @@ class EmotionRecognizer(nn.Module):
             # Display the prediction
             true_emotion = class_names[label]
             predicted_emotion = class_names[predicted_class]
-            print(f"True Emotion: {true_emotion}")
-            print(f"Predicted Emotion: {predicted_emotion}")
 
             audio_path = dataset.file_paths[idx]
             return true_emotion, predicted_emotion, audio_path
