@@ -1,7 +1,10 @@
+from torch import zeros
 import torch.nn as nn
 import torch.nn.functional as F
 
 class EmotionRecognizer(nn.Module):
+
+    dummy_input = zeros((32,1,64,94), device='cpu')
     def __init__(self, dropout_prob = 0.4, conv_dropout_prob = 0.3):
         super(EmotionRecognizer, self).__init__()
         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
