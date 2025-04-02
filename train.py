@@ -8,12 +8,17 @@ from sklearn.model_selection import train_test_split
 
 from main import MODEL_PATH
 
+EPOCHS = 10
+LEARNING_RATE = 0.001
+BATCH_SIZE = 32
+WEIGHT_DECAY = 1e-5  # for Adam optimizer
 
-def train_model(model, train_loader, val_loader, epochs=10, lr=0.001):
+def train_and_save_model(model, train_loader: DataLoader, val_loader, epochs=10, lr=0.001, weight_decay=1e-5):
+    """Trains and saves the model, not much more to say here"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
     for epoch in range(epochs):
@@ -45,7 +50,8 @@ def train_model(model, train_loader, val_loader, epochs=10, lr=0.001):
     print(f"Model saved to {MODEL_PATH}")
 
 
-def test_model(model, test_loader):
+def test_model(model, test_loader: DataLoader):
+    """Tests the model on provided DataLoader"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
@@ -65,7 +71,7 @@ def test_model(model, test_loader):
     print(f"Test Accuracy: {correct / total * 100:.2f}%, for total of {total} predictions")
     return model
 
-def train_and_save_model():
+def train_save_test_model():
     # Extract the dataset
     unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
 
@@ -85,18 +91,18 @@ def train_and_save_model():
     val_dataset = RAVDESSDataset(val_files, val_labels)
     test_dataset = RAVDESSDataset(test_files, test_labels)
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # Instantiate model
     model = EmotionRecognizer()
 
     # Train the model
-    train_model(model, train_loader, val_loader)
+    train_and_save_model(model, train_loader, val_loader, epochs=EPOCHS, lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 
     # Test the model
     my_model = test_model(model, test_loader)
 
 if __name__ == "__main__":
-    train_and_save_model()
+    train_save_test_model()
