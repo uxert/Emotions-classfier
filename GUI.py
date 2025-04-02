@@ -50,6 +50,7 @@ class MyGUI:
     def _create_main_frame(self) -> tk.Frame:
         main_frame = ttk.Frame(self.root, style="TFrame", padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
+        # CHANGE 1.2: Add a clear header with larger, bold font
         header = ttk.Label(main_frame, text="Emotion Recognition System", style="Header.TLabel")
         header.pack(anchor="w", pady=(0, 20))
         return main_frame
@@ -62,6 +63,7 @@ class MyGUI:
         style.configure("TButton", font=("Helvetica", 12), padding=6)
         style.configure("TLabel", font=("Helvetica", 14), background=BG_COLOR)
 
+        # CHANGE 4.1: Define different styles for different types of text
         style.configure("Header.TLabel", font=("Helvetica", 20, "bold"), background=BG_COLOR)
         style.configure("Value.TLabel", font=("Helvetica", 18, "bold"), foreground=ACCENT_BLUE, background=BG_COLOR)
         style.configure("Path.TLabel", font=("Helvetica", 16), foreground=TEXT_GRAY, background=BG_COLOR)
@@ -88,6 +90,7 @@ class MyGUI:
     def _create_stats_frame(self, main_frame):
         stats_frame = tk.Frame(main_frame, bg="white", bd=1, relief=tk.GROOVE, padx=15, pady=10)
         stats_frame.pack(fill=tk.X, pady=10)
+        # CHANGE 5.3: Modified ratio label to show accuracy
         self.stats_label = ttk.Label(stats_frame,
                                      text="Correct: 0 | Total: 0 | Accuracy: 00.00%",
                                      background="white", style="Stats.TLabel")
@@ -112,6 +115,8 @@ class MyGUI:
         """
         button_frame = ttk.Frame(main_frame, style="TFrame")
         button_frame.pack(pady=10)
+        # CHANGE 2.3: Create visually distinct buttons with colors
+        # CHANGE 5.4: Add padding to buttons for better clickability
         buttons_font = ("Helvetica", 20)
         next_btn = tk.Button(button_frame, text="Next Sample", font=buttons_font,
                              bg=BUTTON_NEXT, fg="white", padx=10, pady=5,
