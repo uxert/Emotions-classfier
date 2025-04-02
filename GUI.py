@@ -1,59 +1,75 @@
-import PySimpleGUI as sg
+import tkinter as tk
+from tkinter import font as tkfont  # Add this import
 from EmotionRecognizer import EmotionRecognizer
 from RAVDESSDataset import RAVDESSDataset
 from playsound import playsound
 
 class MyGUI:
-
     def __init__(self):
         self.correct = 0
         self.all_preds = 0
         self.current_audio_path = None
         self.DEFAULT_FONT = ("Helvetica", 16)
+        self.root = None
 
-    def next_sample(self, window, model: EmotionRecognizer, dataset: RAVDESSDataset, class_names: list[str]) -> None:
+        # References to UI elements we'll need to update
+        self.pred_label = None
+        self.true_label = None
+        self.filepath_label = None
+        self.ratio_label = None
+
+    def next_sample(self, model, dataset, class_names):
         true_emotion, predicted_emotion, audio_path = model.make_one_prediction(dataset, class_names)
-        window["-PRED-"].update(f"Prediction: {predicted_emotion}")
-        window["-TRUE-"].update(f"True emotion: {true_emotion}")
+        self.pred_label.config(text=f"Prediction: {predicted_emotion}")
+        self.true_label.config(text=f"True emotion: {true_emotion}")
         self.all_preds += 1
         if true_emotion == predicted_emotion:
             self.correct += 1
         self.current_audio_path = audio_path
-        window["-FILEPATH-"].update(f"Audio path: {self.current_audio_path}")
-        window['-RATIO-'].update(f"Correct predictions: {self.correct}\t| All predictions: {self.all_preds}")
+        self.filepath_label.config(text=f"Audio path: {self.current_audio_path}")
+        self.ratio_label.config(text=f"Correct predictions: {self.correct}\t| All predictions: {self.all_preds}")
 
     def display_current_audio(self):
-        playsound(self.current_audio_path)
+        if self.current_audio_path:
+            playsound(self.current_audio_path)
 
-    def show_gui(self, model, dataset, class_names):
+    def show_gui(self, model: EmotionRecognizer, dataset: RAVDESSDataset, class_names):
+        self.root = tk.Tk()
+        self.root.title("Emotion classifier")
+        self.root.geometry("1200x250")
 
-        # Layout of the GUI
-        layout = [
-            [sg.Text("Prediction: None (yet...)", key="-PRED-", size=(30, 1))],
-            [sg.Text("True emotion: None (yet...) ", key="-TRUE-", size=(30, 1))],
-            [sg.Text("Audio path: None (yet...) ", key="-FILEPATH-", size=(100, 1))],
-            [sg.Text("Correct predictions: 0\t| All predictions: 0", key="-RATIO-", size=(45, 1))],
-            [sg.Button("Next sample", key="-BTN1-"), sg.Button("Play audio", key="-BTN2-"),
-             sg.Button("Exit")]
-        ]
+        # Set default font
+        default_font = tkfont.nametofont("TkDefaultFont")
+        default_font.configure(family="Helvetica", size=16)
+        self.root.option_add("*Font", default_font)
 
+        # Create UI elements
+        self.pred_label = tk.Label(self.root, text="Prediction: None (yet...)", anchor="w", width=30)
+        self.pred_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
-        # Create the Window
-        window = sg.Window("Emotion classifier", layout, size=(1200, 250), font=self.DEFAULT_FONT)
+        self.true_label = tk.Label(self.root, text="True emotion: None (yet...)", anchor="w", width=30)
+        self.true_label.grid(row=1, column=0, sticky="w", padx=10, pady=5)
 
-        # Event Loop
-        while True:
-            event, values = window.read()
+        self.filepath_label = tk.Label(self.root, text="Audio path: None (yet...)", anchor="w", width=100)
+        self.filepath_label.grid(row=2, column=0, columnspan=3, sticky="w", padx=10, pady=5)
 
-            # If user closes window or clicks Exit
-            if event == sg.WINDOW_CLOSED or event == "Exit":
-                break
+        self.ratio_label = tk.Label(self.root, text="Correct predictions: 0\t| All predictions: 0", anchor="w", width=45)
+        self.ratio_label.grid(row=3, column=0, sticky="w", padx=10, pady=5)
 
-            # Button Actions
-            if event == "-BTN1-":
-                self.next_sample(window, model, dataset, class_names)
-            elif event == "-BTN2-":
-                self.display_current_audio()
+        # Create button frame
+        button_frame = tk.Frame(self.root)
+        button_frame.grid(row=4, column=0, sticky="w", padx=10, pady=10)
 
-        # Close the Window
-        window.close()
+        # Create buttons
+        next_btn = tk.Button(button_frame, text="Next sample",
+                            command=lambda: self.next_sample(model, dataset, class_names))
+        next_btn.pack(side=tk.LEFT, padx=5)
+
+        play_btn = tk.Button(button_frame, text="Play audio", command=self.display_current_audio)
+        play_btn.pack(side=tk.LEFT, padx=5)
+
+        exit_btn = tk.Button(button_frame, text="Exit", command=self.root.destroy)
+        exit_btn.pack(side=tk.LEFT, padx=5)
+
+        # Start the main event loop
+        self.root.mainloop()
