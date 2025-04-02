@@ -3,6 +3,7 @@ from tkinter import font as tkfont  # Add this import
 from EmotionRecognizer import EmotionRecognizer
 from RAVDESSDataset import RAVDESSDataset
 from playsound import playsound
+import threading  # to make the audio playback ascync
 
 class MyGUI:
     def __init__(self):
@@ -29,9 +30,10 @@ class MyGUI:
         self.filepath_label.config(text=f"Audio path: {self.current_audio_path}")
         self.ratio_label.config(text=f"Correct predictions: {self.correct}\t| All predictions: {self.all_preds}")
 
-    def display_current_audio(self):
+    def async_display_current_audio(self):
         if self.current_audio_path:
-            playsound(self.current_audio_path)
+            audio_thread = threading.Thread(target=playsound, args=[self.current_audio_path], daemon=True)
+            audio_thread.start()
 
     def show_gui(self, model: EmotionRecognizer, dataset: RAVDESSDataset, class_names):
         self.root = tk.Tk()
@@ -65,7 +67,7 @@ class MyGUI:
                             command=lambda: self.next_sample(model, dataset, class_names))
         next_btn.pack(side=tk.LEFT, padx=5)
 
-        play_btn = tk.Button(button_frame, text="Play audio", command=self.display_current_audio)
+        play_btn = tk.Button(button_frame, text="Play audio", command=self.ascync_display_current_audio)
         play_btn.pack(side=tk.LEFT, padx=5)
 
         exit_btn = tk.Button(button_frame, text="Exit", command=self.root.destroy)
