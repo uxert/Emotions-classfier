@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split
-from dataset_utils import unzip_nested_dataset, load_ravdess_data
+from dataset_utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive, RAVDESS_DOWNLOAD_URL,\
+    RAVDESS_PATH
 from RAVDESSDataset import RAVDESSDataset
 from misc import load_model_for_inference
 
@@ -8,6 +9,7 @@ MODEL_URL = "https://drive.google.com/uc?id=1rEBqU3geg2V4_W9QGY-nZGWWdNXd4zrq"
 
 
 def inference():
+    download_dataset_from_gdrive(RAVDESS_DOWNLOAD_URL, RAVDESS_PATH)
     class_names = [
         "Neutral", "Calm", "Happy", "Sad", "Angry", "Fearful", "Disgust", "Surprised"
     ]

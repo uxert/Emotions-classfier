@@ -11,6 +11,7 @@ def download_dataset_from_gdrive(google_drive_url: str, dataset_path: str):
         print("Already downloaded!")
         return
     print("Downloading...")
+    os.makedirs("data", exist_ok=True)
     gdown.download(google_drive_url, dataset_path, quiet=False)
 
 def unzip_nested_dataset(main_zip_path, extract_to):
