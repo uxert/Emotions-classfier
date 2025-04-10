@@ -135,7 +135,7 @@ class MyGUI:
     def show_gui(self, model: EmotionRecognizer, dataset: RAVDESSDataset, class_names):
         self.root = tk.Tk()
         self.root.title("Emotion Classifier")
-        self.root.geometry("1200x450")
+        self.root.geometry("1200x550")
         self.root.configure(bg=BG_COLOR)
         self._setup_style()
 
