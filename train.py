@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from emotions_classifier import EmotionRecognizer, RAVDESSDataset, RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
-from emotions_classifier.utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive
-from sklearn.model_selection import train_test_split
+from emotions_classifier import EmotionRecognizer, RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
+from emotions_classifier.utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive, \
+    split_train_test_val
 
 from main import MODEL_PATH, RAVDESS_DOWNLOAD_URL
 
@@ -80,18 +80,8 @@ def train_save_test_model():
     # Load speech data (can also switch to "song")
     file_paths, labels = load_ravdess_data(RAVDESS_DATASET_DIR, audio_type="speech")
 
-    # --- Step 3: Split Data ---
-    train_files, test_files, train_labels, test_labels = train_test_split(
-        file_paths, labels, test_size=0.2, stratify=labels, random_state=42
-    )
-    train_files, val_files, train_labels, val_labels = train_test_split(
-        train_files, train_labels, test_size=0.25, stratify=train_labels, random_state=42
-    )
-
     # Create datasets and dataloaders
-    train_dataset = RAVDESSDataset(train_files, train_labels, train_mode=True)
-    val_dataset = RAVDESSDataset(val_files, val_labels)
-    test_dataset = RAVDESSDataset(test_files, test_labels)
+    train_dataset, test_dataset, val_dataset = split_train_test_val(file_paths, labels)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
