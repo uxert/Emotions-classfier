@@ -1,12 +1,15 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from dataset_utils import unzip_nested_dataset, load_ravdess_data
-from RAVDESSDataset import RAVDESSDataset
-from EmotionRecognizer import EmotionRecognizer
+
+from emotions_classifier import RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
+from emotions_classifier.utils.dataset_utils import unzip_nested_dataset, load_ravdess_data, \
+    download_dataset_from_gdrive
+from emotions_classifier.RAVDESSDataset import RAVDESSDataset
+from emotions_classifier.EmotionRecognizer import EmotionRecognizer
 from sklearn.model_selection import train_test_split
 
-from main import MODEL_PATH
+from main import MODEL_PATH, RAVDESS_DOWNLOAD_URL
 
 EPOCHS = 10
 LEARNING_RATE = 0.001
@@ -72,11 +75,13 @@ def test_model(model, test_loader: DataLoader):
     return model
 
 def train_save_test_model():
+    # Download the dataset, if not already downloaded
+    download_dataset_from_gdrive(RAVDESS_DOWNLOAD_URL, RAVDESS_ZIP_PATH)
     # Extract the dataset
-    unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
+    unzip_nested_dataset(RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR)
 
     # Load speech data (can also switch to "song")
-    file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
+    file_paths, labels = load_ravdess_data(RAVDESS_DATASET_DIR, audio_type="speech")
 
     # --- Step 3: Split Data ---
     train_files, test_files, train_labels, test_labels = train_test_split(

@@ -4,14 +4,14 @@ import zipfile
 from sklearn.preprocessing import LabelEncoder
 
 RAVDESS_DOWNLOAD_URL = "https://drive.google.com/uc?id=1NlnM16W96WMspro-uLqvul0dlNIGSajF"
-RAVDESS_PATH = "data/ravdess.zip"
 
 def download_dataset_from_gdrive(google_drive_url: str, dataset_path: str):
     if os.path.exists(dataset_path):
         print("Already downloaded!")
         return
     print("Downloading...")
-    os.makedirs("data", exist_ok=True)
+    dataset_dir = os.path.dirname(dataset_path)
+    os.makedirs(dataset_dir, exist_ok=True)
     gdown.download(google_drive_url, dataset_path, quiet=False)
 
 def unzip_nested_dataset(main_zip_path, extract_to):
