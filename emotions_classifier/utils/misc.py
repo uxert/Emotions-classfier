@@ -1,7 +1,6 @@
 from playsound import playsound
 import torch
-from emotions_classifier.RAVDESSDataset import RAVDESSDataset
-from emotions_classifier.EmotionRecognizer import EmotionRecognizer
+from emotions_classifier import EmotionRecognizer, RAVDESSDataset
 import gdown
 import os
 
