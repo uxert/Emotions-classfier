@@ -3,7 +3,6 @@ import os
 import zipfile
 from sklearn.preprocessing import LabelEncoder
 
-RAVDESS_DOWNLOAD_URL = "https://drive.google.com/uc?id=1NlnM16W96WMspro-uLqvul0dlNIGSajF"
 
 def download_dataset_from_gdrive(google_drive_url: str, dataset_path: str):
     if os.path.exists(dataset_path):

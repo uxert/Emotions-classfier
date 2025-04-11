@@ -3,8 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from emotions_classifier import RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
-from emotions_classifier.utils.dataset_utils import unzip_nested_dataset, load_ravdess_data, \
-    download_dataset_from_gdrive
+from emotions_classifier.utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive
 from emotions_classifier.RAVDESSDataset import RAVDESSDataset
 from emotions_classifier.EmotionRecognizer import EmotionRecognizer
 from sklearn.model_selection import train_test_split

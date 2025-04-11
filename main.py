@@ -1,8 +1,8 @@
 from sklearn.model_selection import train_test_split
-from emotions_classifier.utils.dataset_utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive, RAVDESS_DOWNLOAD_URL
+from emotions_classifier.utils import unzip_nested_dataset, load_ravdess_data, RAVDESS_DOWNLOAD_URL, \
+    download_dataset_from_gdrive, load_model_for_inference
 from emotions_classifier import RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
 from emotions_classifier.RAVDESSDataset import RAVDESSDataset
-from emotions_classifier.utils.misc import load_model_for_inference
 
 MODEL_PATH = "EmotionsClassifier.pth"
 MODEL_URL = "https://drive.google.com/uc?id=1rEBqU3geg2V4_W9QGY-nZGWWdNXd4zrq"
