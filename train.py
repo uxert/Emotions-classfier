@@ -50,7 +50,7 @@ def train_and_save_model(model, train_loader: DataLoader, val_loader, epochs=10,
     print(f"Model saved to {MODEL_PATH}")
 
 
-def test_model(model, test_loader: DataLoader):
+def test_model(model: torch.nn.Module, test_loader: DataLoader) -> float:
     """Tests the model on provided DataLoader"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -68,8 +68,9 @@ def test_model(model, test_loader: DataLoader):
             # noinspection PyUnresolvedReferences
             correct += (predicted == labels).sum().item()
 
-    print(f"Test Accuracy: {correct / total * 100:.2f}%, for total of {total} predictions")
-    return model
+    test_accuracy= correct / total
+    print(f"Test Accuracy: {test_accuracy * 100:.2f}%, for total of {total} predictions")
+    return test_accuracy
 
 def train_save_test_model():
     # Download the dataset, if not already downloaded
