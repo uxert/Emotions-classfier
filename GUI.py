@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-from EmotionRecognizer import EmotionRecognizer
-from RAVDESSDataset import RAVDESSDataset
+from emotions_classifier import EmotionRecognizer
+from emotions_classifier.RAVDESSDataset import RAVDESSDataset
 from playsound import playsound
 import threading  # to make the audio playback ascync
 

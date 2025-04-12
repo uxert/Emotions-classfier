@@ -1,7 +1,7 @@
 from torch import zeros, inference_mode, randint
 import torch.nn as nn
 import torch.nn.functional as F
-from RAVDESSDataset import RAVDESSDataset
+from . import RAVDESSDataset
 
 class EmotionRecognizer(nn.Module):
 

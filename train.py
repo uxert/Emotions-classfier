@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from dataset_utils import unzip_nested_dataset, load_ravdess_data
-from RAVDESSDataset import RAVDESSDataset
-from EmotionRecognizer import EmotionRecognizer
-from sklearn.model_selection import train_test_split
 
-from main import MODEL_PATH
+from emotions_classifier import EmotionRecognizer, RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR
+from emotions_classifier.utils import unzip_nested_dataset, load_ravdess_data, download_dataset_from_gdrive, \
+    split_train_test_val
+
+from main import MODEL_PATH, RAVDESS_DOWNLOAD_URL
 
 EPOCHS = 10
 LEARNING_RATE = 0.001
@@ -72,24 +72,16 @@ def test_model(model, test_loader: DataLoader):
     return model
 
 def train_save_test_model():
+    # Download the dataset, if not already downloaded
+    download_dataset_from_gdrive(RAVDESS_DOWNLOAD_URL, RAVDESS_ZIP_PATH)
     # Extract the dataset
-    unzip_nested_dataset("data/ravdess.zip", "ravdess_data")
+    unzip_nested_dataset(RAVDESS_ZIP_PATH, RAVDESS_DATASET_DIR)
 
     # Load speech data (can also switch to "song")
-    file_paths, labels = load_ravdess_data("ravdess_data", audio_type="speech")
-
-    # --- Step 3: Split Data ---
-    train_files, test_files, train_labels, test_labels = train_test_split(
-        file_paths, labels, test_size=0.2, stratify=labels, random_state=42
-    )
-    train_files, val_files, train_labels, val_labels = train_test_split(
-        train_files, train_labels, test_size=0.25, stratify=train_labels, random_state=42
-    )
+    file_paths, labels = load_ravdess_data(RAVDESS_DATASET_DIR, audio_type="speech")
 
     # Create datasets and dataloaders
-    train_dataset = RAVDESSDataset(train_files, train_labels, train_mode=True)
-    val_dataset = RAVDESSDataset(val_files, val_labels)
-    test_dataset = RAVDESSDataset(test_files, test_labels)
+    train_dataset, test_dataset, val_dataset = split_train_test_val(file_paths, labels)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
