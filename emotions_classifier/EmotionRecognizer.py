@@ -57,7 +57,7 @@ class EmotionRecognizer(nn.Module):
         with inference_mode():
             idx = randint(0, len(dataset), (1,)).item()
             mel_spec, label = dataset[idx]
-
+            mel_spec = mel_spec.to(self.model_device)
             mel_spec = mel_spec.unsqueeze(0)
             output = self(mel_spec)
             predicted_class = output.argmax(dim=1).item()
