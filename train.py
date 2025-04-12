@@ -13,11 +13,9 @@ LEARNING_RATE = 0.001
 BATCH_SIZE = 32
 WEIGHT_DECAY = 1e-5  # for Adam optimizer
 
-def train_and_save_model(model, train_loader: DataLoader, val_loader, epochs=10, lr=0.001, weight_decay=1e-5):
+def train_and_save_model(model, torch_device:torch.device, train_loader: DataLoader, val_loader, epochs=10, lr=0.001,
+                         weight_decay=1e-5):
     """Trains and saves the model, not much more to say here"""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
@@ -25,7 +23,7 @@ def train_and_save_model(model, train_loader: DataLoader, val_loader, epochs=10,
         model.train()
         train_loss = 0
         for mel_spec, labels in train_loader:
-            mel_spec, labels = mel_spec.to(device), labels.to(device)
+            mel_spec, labels = mel_spec.to(torch_device), labels.to(torch_device)
 
             optimizer.zero_grad()
             outputs = model(mel_spec)
@@ -39,7 +37,7 @@ def train_and_save_model(model, train_loader: DataLoader, val_loader, epochs=10,
         model.eval()
         with torch.no_grad():
             for mel_spec, labels in val_loader:
-                mel_spec, labels = mel_spec.to(device), labels.to(device)
+                mel_spec, labels = mel_spec.to(torch_device), labels.to(torch_device)
                 outputs = model(mel_spec)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
@@ -72,7 +70,7 @@ def test_model(model: torch.nn.Module, test_loader: DataLoader) -> float:
     print(f"Test Accuracy: {test_accuracy * 100:.2f}%, for total of {total} predictions")
     return test_accuracy
 
-def train_save_test_model():
+def train_save_test_model(torch_device: torch.device):
     # Download the dataset, if not already downloaded
     download_dataset_from_gdrive(RAVDESS_DOWNLOAD_URL, RAVDESS_ZIP_PATH)
     # Extract the dataset
@@ -84,18 +82,22 @@ def train_save_test_model():
     # Create datasets and dataloaders
     train_dataset, test_dataset, val_dataset = split_train_test_val(file_paths, labels)
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    is_model_on_cpu = torch_device.type == "cpu"
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=(not is_model_on_cpu))
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=(not is_model_on_cpu))
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=(not is_model_on_cpu))
 
     # Instantiate model
     model = EmotionRecognizer()
-
+    model.to(torch_device)
     # Train the model
-    train_and_save_model(model, train_loader, val_loader, epochs=EPOCHS, lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+    train_and_save_model(model, torch_device, train_loader, val_loader, epochs=EPOCHS, lr=LEARNING_RATE,
+                         weight_decay=WEIGHT_DECAY)
 
     # Test the model
-    my_model = test_model(model, test_loader)
+    test_model(model, test_loader)
 
 if __name__ == "__main__":
-    train_save_test_model()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(5*"<"+f"Training using {device}")
+    train_save_test_model(device)
