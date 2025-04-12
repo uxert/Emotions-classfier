@@ -1,4 +1,5 @@
 from torch import zeros, inference_mode, randint
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from . import RAVDESSDataset
@@ -6,6 +7,15 @@ from . import RAVDESSDataset
 class EmotionRecognizer(nn.Module):
 
     dummy_input = zeros((32,1,64,94), device='cpu')
+
+    @property
+    def model_device(self):
+        try:
+            return next(self.parameters()).device
+        except StopIteration:
+            # Fallback for models with no parameters
+            return torch.device("cpu")
+
     def __init__(self, dropout_prob = 0.4, conv_dropout_prob = 0.3):
         super(EmotionRecognizer, self).__init__()
         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1)
